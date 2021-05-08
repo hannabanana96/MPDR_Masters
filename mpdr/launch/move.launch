@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <launch>
-
+    
     <include file="$(find rplidar_ros)/launch/rplidar_s1.launch">
     </include>
-
-    <node name="encoders" pkg="mpdr" type="encoders.py" />
     <node name="motor_driver" pkg="mpdr" type="mtr_ctrl.py" />
     <node name="bumpers" pkg="mpdr" type="bumpers.py" />
+
+    <!-- Odometry -->
+    <node name="encoders" pkg="mpdr" type="encoders.py" />
+
+    <!-- lidar tf -->
+    <node name="lidar_tf" pkg="lidar_tf" type="lidar_tf_broadcaster.py"/>
+    
+
 </launch>
