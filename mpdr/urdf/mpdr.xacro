@@ -3,11 +3,11 @@
 
 	<!-- CHANGE TO YOUR PACKAGE NAME -->
 	
-	<xacro:include filename="$(find qusai_test)/urdf/macros.xacro" />
+	<xacro:include filename="$(find mpdr)/urdf/macros.xacro" />
 	
-	<xacro:include filename="$(find qusai_test)/urdf/materials.xacro" />
+	<xacro:include filename="$(find mpdr)/urdf/materials.xacro" />
 	
-	<xacro:include filename="$(find qusai_test)/urdf/mpdr.gazebo" />
+	<xacro:include filename="$(find mpdr)/urdf/mpdr.gazebo" />
  
   
   <!-- ************ BASE LINK ************ -->
@@ -18,7 +18,9 @@
                 <box size="0.725 0.600 0.315"/>
             </geometry>
             <material name="red"/>
+            <origin xyz="-0.36 0 0" rpy="0 0 0"/>
         </visual>
+
         <collision>
             <geometry>
                 <box size="0.725 0.600 0.315"/>
@@ -30,6 +32,16 @@
                      ixy="0" ixz="0" iyz="0"/>
         </inertial>
     </link>
+
+    <!--
+    <link name="nav_link">
+    </link>
+    <joint name="nav_joint" type="fixed">
+           <origin xyz="-0.25 0 0" rpy="0 0 3.14"/>
+           <parent link="base_link"/>
+           <child link="nav_link"/>
+    </joint>
+    -->
     
     <!-- ************ LiDAR Link and Joint ************ -->i
 <!--
@@ -89,11 +101,11 @@
     <!-- ************ Wheels and Caster Wheels ************ -->
     
     <xacro:caster name="right_caster"/>
-    <xacro:caster_joint name="right_caster_joint" parent="base_link" child="right_caster" origin_xyz="0.3625 0.3 0"/>
+    <xacro:caster_joint name="right_caster_joint" parent="base_link" child="right_caster" origin_xyz="-0.725 0.3 0"/>
     <!--<xacro:trasmission_macro name="right_caster_transmission" joint="right_caster_joint" actuator="left_wheel_actuator1"/> -->
 
     <xacro:caster name="left_caster"/>
-    <xacro:caster_joint name="left_caster_joint" parent="base_link" child="left_caster" origin_xyz="0.3625 -0.3 0"/>
+    <xacro:caster_joint name="left_caster_joint" parent="base_link" child="left_caster" origin_xyz="-0.725 -0.3 0"/>
     <!--<xacro:trasmission_macro name="left_caster_transmission" joint="left_caster_joint" actuator="left_wheel_actuator2"/> -->
 
     <xacro:link_wheel name="back_left_wheel"/>
@@ -105,11 +117,11 @@
     <!-- <xacro:trasmission_macro name="back_right__wheel_transmission" joint="back_right_wheel_joint" actuator="left_wheel_actuator4"/> -->
 
     <xacro:link_wheel name="front_left_wheel"/>
-    <xacro:wheel_joint name="front_left_wheel_joint" parent="base_link" child="front_left_wheel" origin_xyz="-0.25 0.35 -0.15"/>
+    <xacro:wheel_joint name="front_left_wheel_joint" parent="base_link" child="front_left_wheel" origin_xyz="0.0 0.35 -0.15"/>
    <!--<xacro:trasmission_macro name="front_left_wheel_transmission" joint="front_left_wheel_joint" actuator="left_wheel_actuator"/> -->
 
     <xacro:link_wheel name="front_right_wheel"/>
-    <xacro:wheel_joint name="front_right_wheel_joint" parent="base_link" child="front_right_wheel" origin_xyz="-0.25 -0.35 -0.15"/>
+    <xacro:wheel_joint name="front_right_wheel_joint" parent="base_link" child="front_right_wheel" origin_xyz="0.0 -0.35 -0.15"/>
    <!-- <xacro:trasmission_macro name="front_right_wheel_transmission" joint="front_right_wheel_joint" actuator="right_wheel_actuator"/> -->
  
 </robot>
