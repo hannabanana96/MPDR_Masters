@@ -21,4 +21,8 @@
     <rosparam command="load"
               file="$(arg param_file_dir)/$(arg param_file_name).yaml" />
   </node>
+
+  <node name="gps_reader" pkg="ublox_gps" type="gps_data.py" />
+
+
 </launch>

@@ -1,5 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <launch>
     <node name="ros_bno08x" pkg="ros_bno08x" type="talker.py" respawn="true" respawn_delay="2">
         <param name="frame_id" type="string" value="odom" />
     </node>
+
+    <node name="imu_tracker" pkg="ros_bno08x" type="imu_tracker.py" />
 </launch>
