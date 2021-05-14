@@ -26,8 +26,9 @@ def lidar_callback(msg):
     """
 
     lidar_br.sendTransform(
-        (0.0025, 0, 0.1905),		# Lidars xyz displacement from base_link
-        tf.transformations.quaternion_from_euler(0, 0, 0),
+        #(-0.3575, 0, 0.1905),		# Lidars xyz displacement from base_link
+        (-0.1397, 0, 0.1905),		# Lidars xyz displacement from base_link
+        tf.transformations.quaternion_from_euler(0, 0, 3.14),
         rospy.Time.now(),
         "laser",
         "base_link"

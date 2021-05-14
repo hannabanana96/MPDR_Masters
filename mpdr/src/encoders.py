@@ -12,9 +12,12 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3, Transform
 
 
 WHEEL_RADIUS = 0.115#meters  prev = 0.1016
-ROBOT_RADIUS = 0.3#meters  prev = 0.2794
+ROBOT_RADIUS = 0.515#meters  prefect = 0.515
 
-DISTANCE_PER_TICK = (2 * 3.14159265 * WHEEL_RADIUS) / (16383 * 30); 
+#end scalar should be 30
+#DISTANCE_PER_TICK = (2 * 3.14159265 * WHEEL_RADIUS) / (16383 * 30); 
+
+DISTANCE_PER_TICK = (2 * 3.14159265 * WHEEL_RADIUS) / (16383 * 19); 
 
 
 def linear_transform(DOMAIN,RANGE,debug=0):
@@ -47,8 +50,6 @@ class Encoder:
 
         # Convert 14bit values from encoders to degrees for testing
         self.data2degree = linear_transform((0,16383),(0,360))
-
-
 
         self.prev_tick_L = 0
         self.prev_tick_R = 0
@@ -128,7 +129,7 @@ def main(encoder, robot):
     while not rospy.is_shutdown():
         current_time = rospy.Time.now()
 
-        encoder.rw_spi.xfer3(encoder.list_of_bytes,2) # try removing "something_r"
+        encoder.rw_spi.xfer3(encoder.list_of_bytes,2) 
         raw_data_r = encoder.rw_spi.readbytes(2)
         curr_tick_r = encoder.get_data(raw_data_r)      # angle from encoder
 
@@ -136,14 +137,12 @@ def main(encoder, robot):
         raw_data_l = encoder.lw_spi.readbytes(2)
         curr_tick_l = encoder.get_data(raw_data_l)      #angle from encoder
 
-        # <<<< I think we need to convert the 14bit values to angles >>>>
         # Calculating the change in encoder tick values
-        deltaLeftTicks = -encoder.angle2tick(encoder.prev_tick_L, curr_tick_l)
-        deltaRightTicks = encoder.angle2tick(encoder.prev_tick_R, curr_tick_r)
-        
-   #     print("deltaLeftTicks: " + str(deltaLeftTicks))
-   #     print("deltaRightTicks: " + str(deltaRightTicks))
-
+        deltaLeftTicks = encoder.angle2tick(encoder.prev_tick_L, curr_tick_l)
+        deltaRightTicks = -encoder.angle2tick(encoder.prev_tick_R, curr_tick_r)
+        #should be positive when moving forward       
+        print("deltaLeftTicks: " + str(deltaLeftTicks))
+        print("deltaRightTicks: " + str(deltaRightTicks))
 
         # Calculating the velocity of the wheels based on encoder ticks
         dt = (current_time - encoder.last_time).to_sec()
@@ -153,7 +152,7 @@ def main(encoder, robot):
         # Calculating the robot's linear and angular velocities from wheel velocities
         robot.vx = ((vel_wheel_R + vel_wheel_L) / 2)
         robot.vy = 0;
-        robot.vth = ((vel_wheel_R - vel_wheel_L)/ROBOT_RADIUS)
+        robot.vth = -((vel_wheel_R - vel_wheel_L)/ROBOT_RADIUS) #added negative
         
         # compute odometry in a typical way given the velocities of the robot
         # Computing the robot's change in position and angle 
@@ -161,49 +160,30 @@ def main(encoder, robot):
         delta_y = (robot.vx * sin(robot.th) + robot.vy * cos(robot.th)) * dt
         delta_th = robot.vth * dt
 
-
         # In relation to the global coordinate frame
         robot.x += delta_x
         robot.y += delta_y
         robot.th += delta_th
-#        print("robot.x: " + str(robot.x))
-#        print("robot.y: " + str(robot.y))
-#        print("robot.th: " + str(robot.th))
-
+        #print("robot.x: " + str(robot.x))
+        #print("robot.y: " + str(robot.y))
+        print("robot.th, angular pos: " + str(robot.th))
 
         # Since all odometry is 6DOF we'll need a quaternion created from yaw
         # this is different the C++ code (they use createQuaternionMsgfromYaw
         odom_quat = tf.transformations.quaternion_from_euler(0, 0, robot.th)
 
-
-
         # First, we'll publish the transform over tf
-        odom_trans = TransformStamped()
-        odom_trans.header.stamp  = current_time
-        odom_trans.header.frame_id = "odom"
-        odom_trans.child_frame_id = "base_link"
-
-
-        odom_trans.transform.translation.x = robot.x
-        odom_trans.transform.translation.y = robot.y
-        odom_trans.transform.translation.z = 0.0
-        odom_trans.transform.rotation = odom_quat
-
-        # Send the transform
-        #odom_broadcaster.sendTransform(odom_trans)
-        
         odom_broadcaster.sendTransform(
             (robot.x, robot.y, 0.0),
             odom_quat,                      #
-            current_time,                   # stamp
+            rospy.Time.now(),                   # stamp
             "base_link",                    # child_frame_id
             "odom"                          # frame_id
         )
 
-
         # Next, we'll publish the odometry message over ROS
         odom = Odometry()
-        odom.header.stamp = current_time
+        odom.header.stamp = rospy.Time.now()
         odom.header.frame_id = "odom"
 
 
@@ -221,7 +201,6 @@ def main(encoder, robot):
         odom.twist.twist.linear.y = robot.vy
         odom.twist.twist.angular.z = robot.vth
         #odom.twist.twist = Twist(Vector3(robot.vx, robot.vy, 0), Vector3(0, 0, robot.vth))
-
 
         # publish the message
         encoder.encoder_pub.publish(odom)
