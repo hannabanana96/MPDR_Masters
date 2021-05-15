@@ -3,16 +3,23 @@
 
    <master auto="start"/>
  <!-- Run the map server --> 
-    <node name="map_server" pkg="map_server" type="map_server" args="$(find mpdr)/tmp_map.pgm 0.05"/>
+<!--
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find mpdr)/better_piano.pgm 0.05"/>
+-->
 
  <!--- Run AMCL --> 
     <include file="$(find amcl)/examples/amcl_diff.launch" />
-
+<!-- Start Gmapping -->
+    <!--
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping">
+        <remap from="scan" to="scan_filtered"/>
+    </node>
+    -->
    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find mpdr)/config/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
     <rosparam file="$(find mpdr)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find mpdr)/config/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find mpdr)/config/global_costmap_params.yaml" command="load" /> 
+    <rosparam file="$(find mpdr)/config/global_costmap_params.yaml" command="load"/> 
     <rosparam file="$(find mpdr)/config/base_local_planner_params.yaml" command="load" />
  </node>
 

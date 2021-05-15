@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="not_filtering_laser" >
+    <rosparam command="load" file="$(find mpdr)/config/laser_filter_config.yaml" />
+<!--    <remap from="scan" to="scan"/> -->
+  </node>
+</launch>

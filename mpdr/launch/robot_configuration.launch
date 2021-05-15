@@ -3,6 +3,7 @@
     <!-- sensors and transforms that the robot needs for navigation -->    
     <include file="$(find rplidar_ros)/launch/rplidar_s1.launch">
     </include>
+    <include file="$(find mpdr)/launch/scan_filter.launch" /> 
     <node name="motor_driver" pkg="mpdr" type="mtr_ctrl.py" />
     <node name="bumpers" pkg="mpdr" type="bumpers.py" />
 

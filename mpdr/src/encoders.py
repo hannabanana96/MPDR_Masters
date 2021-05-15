@@ -105,7 +105,8 @@ class Encoder:
     # Gets data from encoders 
     def get_data(self, list_of_2bytes):
         if not (self.get_pard_bit(list_of_2bytes[0]) or self.get_error_bit(list_of_2bytes[0])):
-            return 0x80
+            print("bad get data bad dog")
+            return 0xFFFF
         else:
             data = ~(0b11000000) & list_of_2bytes[0]
             data = (data << 8) + list_of_2bytes[1]
@@ -136,6 +137,15 @@ def main(encoder, robot):
         encoder.lw_spi.xfer3(encoder.list_of_bytes,2)
         raw_data_l = encoder.lw_spi.readbytes(2)
         curr_tick_l = encoder.get_data(raw_data_l)      #angle from encoder
+
+        #checking for errors, if error do this, we want to get rid of bad data
+        if curr_tick_r == 0xFFFF:
+            curr_tick_r = encoder.prev_tick_R
+            print("bad R") 
+        if curr_tick_l == 0xFFFF:
+            curr_tick_l = encoder.prev_tick_L
+            print("bad L")
+
 
         # Calculating the change in encoder tick values
         deltaLeftTicks = encoder.angle2tick(encoder.prev_tick_L, curr_tick_l)

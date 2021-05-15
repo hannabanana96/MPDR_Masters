@@ -7,7 +7,6 @@ from time import sleep
 import RPi.GPIO as GPIO
 import serial
 
-
 MAX_SPEED = 0.5 #Meter per second
 
 # **** Robot info in meters ****
@@ -23,8 +22,10 @@ TEST_ANGULAR_VELOCITY = 0.2 # Should get 30% duty cycle, really slow wheel movem
 
 # **** Value bounds for calculations ****
 # Max, min and 0 value to turn(and not turn) the motors)
-serial_bounds = (-63,-6,0,6,63) 
-linear_vel_bounds = (-1.7885,-0.15956,0,0.15956,1.7885) # m/s
+#serial_bounds = (-63,-6,0,6,63) 
+serial_bounds = (-63,-2,0,2,63) 
+#linear_vel_bounds = (-1.7885,-0.15956,0,0.15956,1.7885) # m/s
+linear_vel_bounds = (-1.7885,-0.05,0,0.05,1.7885) # m/s
 angluar_vel_bounds = (-6.4,6.4)                         # rad/s
 
 
@@ -63,6 +64,7 @@ class MotorDriver:
                              
         # Emergency stop start as false
         self.stop = 0
+        self.stop_count = 0
   
         # Setting up ROS publishers and subcribers
         self.serial_pub = rospy.Publisher('serial_speed', String, queue_size=10)
@@ -140,10 +142,17 @@ class MotorDriver:
     # Bumper handler
     def bump_callback(self,data):
         if data.x == 1.0:
-            self.stop = 1
-            print("Bumper have been HIT")
-            self.wheelVeltoSerial(0, "left")
-            self.wheelVeltoSerial(0, "right")
+            self.stop_count += 1
+            if self.stop_count > 5:
+                self.stop = 1
+                print("Bumper have been HIT")
+                self.wheelVeltoSerial(0, "left")
+                self.wheelVeltoSerial(0, "right")
+       
+        elif data.x == 0:
+            self.stop = 0
+            self.stop_count = 0
+
 
 
 if __name__ == "__main__":
