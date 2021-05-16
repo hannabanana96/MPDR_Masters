@@ -2,12 +2,17 @@
 
 import math
 import rospy
-from gpiozero import Button
+from gpiozero import Button, LED
 from geometry_msgs.msg import Point
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+
+GPIO.setup(26,GPIO.OUT) #setting gpio 26 as output
+GPIO.output(26,1) #setting gpio 26 high
+
+led = LED(25)
 
 class Bumper:
     def __init__(self):
@@ -25,9 +30,11 @@ class Bumper:
             # Bump sensor activated (we've been hit)
             if GPIO.input(17) or GPIO.input(27):
                 self.bumpStatus.x = 1
+                led.on()
             # Bump sensor not activated
             else:
                 self.bumpStatus.x = 0
+                led.off()
 
             self.bumper_pub.publish(self.bumpStatus)
             self.rate.sleep()

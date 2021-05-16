@@ -1,17 +1,21 @@
 <?xml version="1.0"?>
 <launch>
     <!-- sensors and transforms that the robot needs for navigation -->    
-    <include file="$(find rplidar_ros)/launch/rplidar_s1.launch">
-    </include>
+    <include file="$(find rplidar_ros)/launch/rplidar_s1.launch" />
+    
+    <!-- lidar tf -->
+    <node name="lidar_tf" pkg="mpdr" type="lidar_tf_broadcaster.py"/>
     <include file="$(find mpdr)/launch/scan_filter.launch" /> 
+    
     <node name="motor_driver" pkg="mpdr" type="mtr_ctrl.py" />
     <node name="bumpers" pkg="mpdr" type="bumpers.py" />
 
     <!-- Odometry -->
     <node name="encoders" pkg="mpdr" type="encoders.py" />
-
-    <!-- lidar tf -->
-    <node name="lidar_tf" pkg="lidar_tf" type="lidar_tf_broadcaster.py"/>
     
+<!--
+   <include file="$(find ros_bno08x)/launches/bno08x.launch" />
+    <node name="imu_tf" pkg="mpdr" type="imu_tf_broadcaster.py" />
+-->
 
 </launch>

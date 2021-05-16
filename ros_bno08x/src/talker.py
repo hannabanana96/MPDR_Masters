@@ -40,6 +40,7 @@ def bno08x_node():
     while True:
         raw_msg = Imu()
         raw_msg.header.stamp = rospy.Time.now()
+        raw_msg.header.frame_id = "odom"
 
         accel_x, accel_y, accel_z = bno.acceleration
         raw_msg.linear_acceleration.x = accel_x

@@ -8,8 +8,10 @@
     <node name="bumpers" pkg="mpdr" type="bumpers.py" />
 
 
-`<!--
+
+<!--
     <node name="encoders" pkg="mpdr" type="encoders.py" />
+
 
 
     <node name="lidar_tf" pkg="lidar_tf" type="lidar_tf_broadcaster.py"/>

@@ -9,6 +9,13 @@ import math
 from math import sin, cos, pi
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3, TransformStamped
 #import geometry_msgs.msg
+import RPi.GPIO as GPIO
+
+# For resetting the encoders
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(22, GPIO.OUT)
+GPIO.output(22,0)
 
 
 WHEEL_RADIUS = 0.115#meters  prev = 0.1016
@@ -34,7 +41,7 @@ def linear_transform(DOMAIN,RANGE,debug=0):
 
 class Encoder:
     def __init__(self):
-        self.encoder_pub = rospy.Publisher('odom_frame',Odometry, queue_size=50)
+        self.encoder_pub = rospy.Publisher('enc_odom',Odometry, queue_size=50)
         self.r = rospy.Rate(100)
         
         # Initial SPI
@@ -59,6 +66,7 @@ class Encoder:
 
 
         self.list_of_bytes = [0xFF,0xFF]
+        GPIO.output(22,1)
 
     # Need to write description of this
     # CHANGE THIS TO TICK VALUES - 14BITS/2 ETC
@@ -127,6 +135,7 @@ def main(encoder, robot):
     # Set up odometry broadcaster       
     odom_broadcaster = tf.TransformBroadcaster()
 
+    i = 0 
     while not rospy.is_shutdown():
         current_time = rospy.Time.now()
 
@@ -187,14 +196,15 @@ def main(encoder, robot):
             (robot.x, robot.y, 0.0),
             odom_quat,                      #
             rospy.Time.now(),                   # stamp
+        #SPENCER: When I edited this at 2pm on 5/16 og it was enc_odom_frame, then base_link
             "base_link",                    # child_frame_id
-            "odom"                          # frame_id
+            "enc_odom_frame"                          # frame_id
         )
 
         # Next, we'll publish the odometry message over ROS
         odom = Odometry()
         odom.header.stamp = rospy.Time.now()
-        odom.header.frame_id = "odom"
+        odom.header.frame_id = "base_link" #was odom
 
 
         # set the position
@@ -206,7 +216,7 @@ def main(encoder, robot):
 
 
         # set the velocity
-        odom.child_frame_id = "base_link"
+        odom.child_frame_id = "enc_odom_frame"
         odom.twist.twist.linear.x = robot.vx
         odom.twist.twist.linear.y = robot.vy
         odom.twist.twist.angular.z = robot.vth
@@ -218,6 +228,7 @@ def main(encoder, robot):
         encoder.prev_tick_L = curr_tick_l
         encoder.prev_tick_R = curr_tick_r
         encoder.last_time = current_time
+        
         encoder.r.sleep()
 
 if __name__ == "__main__":

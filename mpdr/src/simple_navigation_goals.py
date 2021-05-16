@@ -13,7 +13,7 @@ def movebase_client():
     goal.target_pose.header.frame_id = "odom"
     goal.target_pose.header.stamp = rospy.Time.now()
     goal.target_pose.pose.position.x = 1.0
-    goal.target_pose.pose.position.y = 0.0
+    goal.target_pose.pose.position.y = 0
     goal.target_pose.pose.orientation.w = 1.0
 
     client.send_goal(goal)

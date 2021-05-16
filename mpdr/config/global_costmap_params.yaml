@@ -1,5 +1,6 @@
 global_costmap:
-    global_frame: odom
+    #SPENCER: 5/16 this was odom
+    global_frame: enc_odom_frame
     robot_base_frame: base_link
     update_frequency: 5.0
     static_map: false
