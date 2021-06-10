@@ -17,13 +17,13 @@ GPIO.setwarnings(False)
 GPIO.setup(22, GPIO.OUT)
 GPIO.output(22,0)
 
+WHEEL_RADIUS = 0.115 # Meters  
+ROBOT_RADIUS = 0.515 # Meters  
 
-WHEEL_RADIUS = 0.115#meters  prev = 0.1016
-ROBOT_RADIUS = 0.515#meters  prefect = 0.515
-
-#end scalar should be 30
-#DISTANCE_PER_TICK = (2 * 3.14159265 * WHEEL_RADIUS) / (16383 * 30); 
-
+# (Circumference_of_wheel) / (# of ticks per one rev)(nut multiplier)
+# Wheel encoder is measuring a nut that spins on the shaft of the moter, 
+#  so there is nut multiplier. The nut makes about 19 revolutions per
+#  one wheel revolution. (POTENTIAL SOURCE OF ERROR)
 DISTANCE_PER_TICK = (2 * 3.14159265 * WHEEL_RADIUS) / (16383 * 19); 
 
 
@@ -68,7 +68,6 @@ class Encoder:
         self.list_of_bytes = [0xFF,0xFF]
         GPIO.output(22,1)
 
-    # Need to write description of this
     # CHANGE THIS TO TICK VALUES - 14BITS/2 ETC
     # 14 bits = 16383 = 360 degrees
     # 16383/2 = 8920 (rounded up = 180 degrees
@@ -139,6 +138,7 @@ def main(encoder, robot):
     while not rospy.is_shutdown():
         current_time = rospy.Time.now()
 
+        # Get motor position data from encoders
         encoder.rw_spi.xfer3(encoder.list_of_bytes,2) 
         raw_data_r = encoder.rw_spi.readbytes(2)
         curr_tick_r = encoder.get_data(raw_data_r)      # angle from encoder
@@ -147,7 +147,7 @@ def main(encoder, robot):
         raw_data_l = encoder.lw_spi.readbytes(2)
         curr_tick_l = encoder.get_data(raw_data_l)      #angle from encoder
 
-        #checking for errors, if error do this, we want to get rid of bad data
+        # Checking for errors, if error do this, we want to get rid of bad data
         if curr_tick_r == 0xFFFF:
             curr_tick_r = encoder.prev_tick_R
             print("bad R") 
@@ -159,9 +159,11 @@ def main(encoder, robot):
         # Calculating the change in encoder tick values
         deltaLeftTicks = encoder.angle2tick(encoder.prev_tick_L, curr_tick_l)
         deltaRightTicks = -encoder.angle2tick(encoder.prev_tick_R, curr_tick_r)
-        #should be positive when moving forward       
-        print("deltaLeftTicks: " + str(deltaLeftTicks))
-        print("deltaRightTicks: " + str(deltaRightTicks))
+        
+        # Debug
+        # Should be positive when moving forward       
+        #print("deltaLeftTicks: " + str(deltaLeftTicks))
+        #print("deltaRightTicks: " + str(deltaRightTicks))
 
         # Calculating the velocity of the wheels based on encoder ticks
         dt = (current_time - encoder.last_time).to_sec()
@@ -173,7 +175,7 @@ def main(encoder, robot):
         robot.vy = 0;
         robot.vth = -((vel_wheel_R - vel_wheel_L)/ROBOT_RADIUS) #added negative
         
-        # compute odometry in a typical way given the velocities of the robot
+        # Compute odometry in a typical way given the velocities of the robot
         # Computing the robot's change in position and angle 
         delta_x = (robot.vx * cos(robot.th) - robot.vy * sin(robot.th)) * dt
         delta_y = (robot.vx * sin(robot.th) + robot.vy * cos(robot.th)) * dt
@@ -183,9 +185,11 @@ def main(encoder, robot):
         robot.x += delta_x
         robot.y += delta_y
         robot.th += delta_th
+        
+        # Debug
         #print("robot.x: " + str(robot.x))
         #print("robot.y: " + str(robot.y))
-        print("robot.th, angular pos: " + str(robot.th))
+        #print("robot.th, angular pos: " + str(robot.th))
 
         # Since all odometry is 6DOF we'll need a quaternion created from yaw
         # this is different the C++ code (they use createQuaternionMsgfromYaw
@@ -194,18 +198,16 @@ def main(encoder, robot):
         # First, we'll publish the transform over tf
         odom_broadcaster.sendTransform(
             (robot.x, robot.y, 0.0),
-            odom_quat,                      #
-            rospy.Time.now(),                   # stamp
-        #SPENCER: When I edited this at 2pm on 5/16 og it was enc_odom_frame, then base_link
+            odom_quat,                      
+            rospy.Time.now(),               # stamp
             "base_link",                    # child_frame_id
-            "enc_odom_frame"                          # frame_id
+            "enc_odom_frame"                # frame_id
         )
 
         # Next, we'll publish the odometry message over ROS
         odom = Odometry()
         odom.header.stamp = rospy.Time.now()
-        odom.header.frame_id = "base_link" #was odom
-
+        odom.header.frame_id = "enc_odom_frame" 
 
         # set the position
         odom.pose.pose.position.x = robot.x
@@ -216,7 +218,7 @@ def main(encoder, robot):
 
 
         # set the velocity
-        odom.child_frame_id = "enc_odom_frame"
+        odom.child_frame_id = "base_link"
         odom.twist.twist.linear.x = robot.vx
         odom.twist.twist.linear.y = robot.vy
         odom.twist.twist.angular.z = robot.vth
