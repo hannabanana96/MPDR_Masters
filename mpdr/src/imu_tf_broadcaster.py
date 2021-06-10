@@ -11,7 +11,6 @@ def imu_callback(msg):
     current_time = rospy.Time.now()
 
     imu_br.sendTransform(
-        #(-0.3575, 0, 0.1905),		# Lidars xyz displacement from base_link
         (-0.3048, -0.1397, 0),		# Lidars xyz displacement from base_link
         tf.transformations.quaternion_from_euler(0, 0, 0),
         rospy.Time.now(),
