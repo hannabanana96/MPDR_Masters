@@ -7,30 +7,22 @@ from time import sleep
 import RPi.GPIO as GPIO
 import serial
 
-MAX_SPEED = 0.5 #Meter per second
 
 # **** Robot info in meters ****
 WHEEL_RADIUS = 0.1016
 ROBOT_RADIUS = 0.2794 
 ROBOT_WIDTH  = 2*ROBOT_RADIUS
+MAX_SPEED = 0.5     # m/s
+ANGULAR_MAX = 6.4   # rad/s
 
-# **** Angular speeds for the wheels ****
-ANGULAR_MAX = 6.4             # Rad/secod
-#TEST_ANGULAR_VELOCITY = 0.001 # Should get 30% duty cycle, really slow wheel movement
-#TEST_ANGULAR_VELOCITY = 0.15956 # Should get 30% duty cycle, really slow wheel movement
-TEST_ANGULAR_VELOCITY = 0.2 # Should get 30% duty cycle, really slow wheel movement
 
 # **** Value bounds for calculations ****
 # Max, min and 0 value to turn(and not turn) the motors)
-#serial_bounds = (-63,-6,0,6,63) 
 serial_bounds = (-63,-2,0,2,63) 
-#linear_vel_bounds = (-1.7885,-0.15956,0,0.15956,1.7885) # m/s
-linear_vel_bounds = (-1.7885,-0.05,0,0.05,1.7885) # m/s
-angluar_vel_bounds = (-6.4,6.4)                         # rad/s
+linear_vel_bounds = (-1.7885,-0.05,0,0.05,1.7885)  # m/s
+angluar_vel_bounds = (-6.4,6.4)                    # rad/s
 
 
-# Commented out from Spencer's version (was already commented out
-#linear_vel_bounds = (-1.7885,-0.001,0,0.001,1.7885)#linear velocit meters per second
 
 
 # **** Transforms one number range to another ****
@@ -140,6 +132,9 @@ class MotorDriver:
             self.wheelVeltoSerial(wheel_vel_R, "right")
 
     # Bumper handler
+    # If the bumpers are triggered (they send a "1), the driver will ignore any
+    #    incoming velocity commands. This is none recoverable. Mtr_ctrl.py must be
+    #    restarted to clear this.
     def bump_callback(self,data):
         if data.x == 1.0:
             self.stop_count += 1
